@@ -11,12 +11,15 @@ Hands-free voice input - converts speech to text to avoid typing long prompts.
 - Install: `yay -S python-openai-whisper wl-clipboard libnotify`
 - Run: `./dictate.sh`
 
-### 2. dictate-server.sh (whisper.cpp) ⚡
+### 2. execute.sh (whisper.cpp) ⚡
 - Uses whisper.cpp with persistent server
 - Keeps model in memory
 - Processing time: <1s
+- Auto-starts server if not running
+- Toggle recording: press once to start, press again to stop
+- Copies transcribed text to clipboard
 - Setup: Clone and build whisper.cpp, download model
-- Start server, then run: `./dictate-server.sh`
+- Run: `./execute.sh`
 
 ## Useful Commands
 
@@ -41,4 +44,10 @@ curl -F "file=@/tmp/test.wav" http://localhost:8080/inference
 1. System Settings → Shortcuts → Custom Shortcuts
 2. Edit → New → Global Shortcut → Command/URL
 3. Trigger: Set your key (e.g., `Meta+D`)
-4. Action: `konsole -e /home/danizz/dev/projects/whisper/dictate-server.sh`
+4. Action: `/path/to/dicta.me/execute.sh`
+
+## Future Improvements
+
+- [ ] Auto-paste text at cursor position instead of clipboard
+  - Requires: `yay -S ydotool` and daemon setup
+  - Would eliminate manual Ctrl+V step
