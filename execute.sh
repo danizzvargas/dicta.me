@@ -8,7 +8,7 @@ PID_FILE="/tmp/whisper-server.pid"
 if ! curl -s http://localhost:8080/ > /dev/null; then
     echo "Starting whisper server..."
     cd "$WHISPER_DIR"
-    LD_LIBRARY_PATH=build/src:$LD_LIBRARY_PATH nohup ./build/bin/whisper-server -m models/ggml-base.bin -l es -t 8 > /tmp/whisper-server.log 2>&1 &
+    LD_LIBRARY_PATH=build/src:$LD_LIBRARY_PATH nohup ./build/bin/whisper-server -m models/ggml-base.bin -l auto -t 8 > /tmp/whisper-server.log 2>&1 &
     echo $! > "$PID_FILE"
 
     # Wait for server
