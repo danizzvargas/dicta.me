@@ -1,4 +1,4 @@
-# Voice Dictation Project
+# Dicta.me
 
 Hands-free voice input - converts speech to text to avoid typing long prompts.
 
@@ -26,7 +26,7 @@ cd whisper.cpp
 sh ./models/download-ggml-model.sh base
 
 # Start whisper server
-./build/bin/whisper-server -m models/ggml-base.bin -l es
+./build/bin/whisper-server -m models/ggml-base.bin -l es -t 8
 
 # Test audio recording
 arecord -f cd -d 5 -D pipewire /tmp/test.wav
