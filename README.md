@@ -2,16 +2,9 @@
 
 Hands-free voice input - converts speech to text to avoid typing long prompts.
 
-## Two Implementations
+## Implementation
 
-### 1. dictate.sh (openai-whisper)
-- Uses Python-based whisper
-- Loads model on every transcription
-- Processing time: ~5-10s
-- Install: `yay -S python-openai-whisper wl-clipboard libnotify`
-- Run: `./dictate.sh`
-
-### 2. execute.sh (whisper.cpp) ⚡
+### execute.sh (whisper.cpp) ⚡
 - Uses whisper.cpp with persistent server
 - Keeps model in memory
 - Processing time: <1s
