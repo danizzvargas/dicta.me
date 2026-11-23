@@ -11,7 +11,7 @@ def notify(
     title: str,
     body: str,
     *,
-    icon: str = "audio-input-microphone",
+    icon: str = "me.dicta.Dicta",
     replace_id: int = 0,
     timeout_ms: int = 5000,
 ) -> int:

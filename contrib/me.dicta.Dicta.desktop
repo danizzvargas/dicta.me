@@ -3,5 +3,5 @@ Type=Application
 Name=Dicta
 Comment=Local voice dictation
 Exec=@EXEC@
-Icon=audio-input-microphone
+Icon=me.dicta.Dicta
 NoDisplay=true

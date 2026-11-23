@@ -17,7 +17,7 @@ class _Item(ServiceInterface):
     def __init__(self, on_activate: Callable[[], Awaitable[None]]) -> None:
         super().__init__("org.kde.StatusNotifierItem")
         self._on_activate = on_activate
-        self.icon = "audio-input-microphone"
+        self.icon = "me.dicta.Dicta"
         self.tooltip_title = "Dicta"
         self.tooltip_body = ""
 
@@ -82,9 +82,9 @@ class Tray:
     """Tray icon showing whether Dicta is ready, recording or processing."""
 
     STATES = {
-        "idle": ("audio-input-microphone", "Ready", "Shortcut active"),
-        "recording": ("media-record", "Recording", "Press the shortcut to stop"),
-        "processing": ("view-refresh", "Processing", "Transcribing..."),
+        "idle": ("me.dicta.Dicta", "Ready", "Shortcut active"),
+        "recording": ("me.dicta.Dicta-recording", "Recording", "Press the shortcut to stop"),
+        "processing": ("me.dicta.Dicta-processing", "Processing", "Transcribing..."),
     }
 
     def __init__(self, on_activate: Callable[[], Awaitable[None]]) -> None:

@@ -45,7 +45,7 @@ class Dicta:
             self.state = State.RECORDING
             self._show("recording")
             self._start_timer(
-                "Recording", "Press the shortcut again to stop", "media-record"
+                "Recording", "Press the shortcut again to stop", "me.dicta.Dicta-recording"
             )
         elif self.state is State.RECORDING:
             audio = self.recorder.stop()
@@ -57,7 +57,7 @@ class Dicta:
                 return
             self.state = State.TRANSCRIBING
             self._show("processing")
-            self._start_timer("Transcribing", "Please wait", "view-refresh")
+            self._start_timer("Transcribing", "Please wait", "me.dicta.Dicta-processing")
             try:
                 text = await asyncio.to_thread(self.transcriber.transcribe, audio)
                 text = format_text(text, self.fmt)
@@ -80,12 +80,12 @@ class Dicta:
             try:
                 await asyncio.sleep(0.1)  # let the compositor see the new clipboard
                 await self.keyboard.press_combo()
-                self._message("Pasted", text, "edit-paste")
+                self._message("Pasted", text, "me.dicta.Dicta")
                 return
             except Exception as exc:
                 self._message("Paste failed, copied to clipboard", f"{exc}\n{text}", "dialog-warning")
                 return
-        self._message("Copied to clipboard", text, "edit-copy")
+        self._message("Copied to clipboard", text, "me.dicta.Dicta")
 
     def _start_timer(self, title: str, body: str, icon: str) -> None:
         """Show a persistent notification whose title counts elapsed seconds."""
@@ -109,7 +109,7 @@ class Dicta:
         self,
         title: str,
         body: str,
-        icon: str = "audio-input-microphone",
+        icon: str = "me.dicta.Dicta",
         timeout_ms: int = 5000,
     ) -> None:
         """Show or update the single Dicta notification."""
