@@ -23,7 +23,7 @@ trigger = "META+R"
 
 # Words Whisper should favor: names, brands, technical terms.
 hotwords = []
-# hotwords = ["Neovim", "Claude Code", "Dicta.me"]
+# hotwords = ["Neovim", "Claude Code", "dicta.me"]
 
 # Context that sets vocabulary and style, as if it were said just before.
 initial_prompt = ""
