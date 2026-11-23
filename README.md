@@ -18,6 +18,8 @@ While the program runs:
 
 While it runs, a tray icon shows the state: a microphone when ready, a red dot while recording, and a refresh icon while transcribing. Clicking the icon works like the shortcut.
 
+A single notification follows the process: "Recording..." stays on screen until you stop, then changes to "Transcribing..." and finally to "Copied to clipboard" with the transcribed text.
+
 Stopping the program with Ctrl+C removes the shortcut and the icon.
 
 The first run downloads the model. The first time the shortcut is registered, KDE may ask you to confirm it.
@@ -41,7 +43,7 @@ Meta+R ─▶ KDE GlobalShortcuts portal ─▶ dicta ─▶ record ─▶ faste
 - `src/dicta/tray.py`: tray icon through the StatusNotifierItem protocol.
 - `src/dicta/audio.py`: in-memory microphone capture (16 kHz mono).
 - `src/dicta/stt.py`: transcription with faster-whisper (CPU, int8). The model stays loaded.
-- `src/dicta/output.py`: copies the text to the clipboard with `wl-copy` and sends a notification.
+- `src/dicta/output.py`: copies the text to the clipboard with `wl-copy` and shows one notification that updates in place.
 - `contrib/me.dicta.Dicta.desktop`: the portal identifies the app through this file. `dicta.sh` installs it into `~/.local/share/applications`.
 
 ## Future improvements

@@ -26,34 +26,55 @@ class Dicta:
         self.tray: Tray | None = None
         self.recorder = Recorder()
         self.state = State.IDLE
+        self.notification_id = 0
 
     async def toggle(self) -> None:
         if self.state is State.IDLE:
             self.recorder.start()
             self.state = State.RECORDING
             self._show("recording")
+            self._message(
+                "Recording...", "Press the shortcut again to stop", "media-record", 0
+            )
         elif self.state is State.RECORDING:
             audio = self.recorder.stop()
             if len(audio) < MIN_SECONDS * SAMPLE_RATE:
                 self.state = State.IDLE
                 self._show("idle")
-                notify("Dicta", "Recording too short")
+                self._message("Recording too short", "Nothing was copied")
                 return
             self.state = State.TRANSCRIBING
             self._show("processing")
+            self._message("Transcribing...", "Please wait", "view-refresh", 0)
             try:
                 text = await asyncio.to_thread(self.transcriber.transcribe, audio)
                 if text:
                     copy_text(text)
-                    notify("Dicta", "Copied to clipboard")
+                    self._message("Copied to clipboard", text, "edit-copy")
                 else:
-                    notify("Dicta", "No speech detected")
+                    self._message("No speech detected", "Nothing was copied")
             except Exception as exc:
-                notify("Dicta", f"Error: {exc}")
+                self._message("Error", str(exc), "dialog-error")
                 raise
             finally:
                 self.state = State.IDLE
                 self._show("idle")
+
+    def _message(
+        self,
+        title: str,
+        body: str,
+        icon: str = "audio-input-microphone",
+        timeout_ms: int = 5000,
+    ) -> None:
+        """Show or update the single Dicta notification."""
+        self.notification_id = notify(
+            title,
+            body,
+            icon=icon,
+            replace_id=self.notification_id,
+            timeout_ms=timeout_ms,
+        )
 
     def _show(self, state: str) -> None:
         if self.tray is not None:
