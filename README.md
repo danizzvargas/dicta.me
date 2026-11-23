@@ -45,3 +45,7 @@ Other options (`paste`, `paste_keys`, `[format]`) are in the generated file. Res
 
 - Stop automatically after a pause in speech.
 - Voice commands ("new line", "period").
+
+## License
+
+[MIT](LICENSE)

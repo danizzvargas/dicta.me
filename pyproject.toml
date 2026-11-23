@@ -3,6 +3,7 @@ name = "dicta"
 version = "0.1.0"
 description = "Local voice dictation: press a shortcut, speak, and the text is typed at the cursor."
 requires-python = ">=3.11"
+license = "MIT"
 dependencies = [
     "faster-whisper>=1.0",
     "sounddevice>=0.4",
