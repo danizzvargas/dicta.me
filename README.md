@@ -1,4 +1,8 @@
-# Dicta.me
+<p align="center">
+  <img src="contrib/icons/me.dicta.Dicta.svg" alt="Dicta.me icon" width="96">
+</p>
+
+<h1 align="center">Dicta.me</h1>
 
 Local voice dictation for **KDE Plasma 6 on Wayland**. Press a shortcut, speak, press it again, and the text is pasted at the cursor. Everything runs on your machine, on CPU, with [faster-whisper](https://github.com/SYSTRAN/faster-whisper).
 
