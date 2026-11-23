@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import signal
+import time
 from enum import Enum, auto
 
 from .audio import SAMPLE_RATE, Recorder
@@ -27,17 +28,19 @@ class Dicta:
         self.recorder = Recorder()
         self.state = State.IDLE
         self.notification_id = 0
+        self._timer: asyncio.Task | None = None
 
     async def toggle(self) -> None:
         if self.state is State.IDLE:
             self.recorder.start()
             self.state = State.RECORDING
             self._show("recording")
-            self._message(
-                "Recording...", "Press the shortcut again to stop", "media-record", 0
+            self._start_timer(
+                "Recording", "Press the shortcut again to stop", "media-record"
             )
         elif self.state is State.RECORDING:
             audio = self.recorder.stop()
+            self._stop_timer()
             if len(audio) < MIN_SECONDS * SAMPLE_RATE:
                 self.state = State.IDLE
                 self._show("idle")
@@ -45,7 +48,7 @@ class Dicta:
                 return
             self.state = State.TRANSCRIBING
             self._show("processing")
-            self._message("Transcribing...", "Please wait", "view-refresh", 0)
+            self._start_timer("Transcribing", "Please wait", "view-refresh")
             try:
                 text = await asyncio.to_thread(self.transcriber.transcribe, audio)
                 if text:
@@ -57,8 +60,27 @@ class Dicta:
                 self._message("Error", str(exc), "dialog-error")
                 raise
             finally:
+                self._stop_timer()
                 self.state = State.IDLE
                 self._show("idle")
+
+    def _start_timer(self, title: str, body: str, icon: str) -> None:
+        """Show a persistent notification whose title counts elapsed seconds."""
+        self._stop_timer()
+        self._message(f"{title}... 0:00", body, icon, 0)
+        self._timer = asyncio.ensure_future(self._tick(title, body, icon))
+
+    def _stop_timer(self) -> None:
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
+
+    async def _tick(self, title: str, body: str, icon: str) -> None:
+        start = time.monotonic()
+        while True:
+            await asyncio.sleep(1)
+            minutes, seconds = divmod(int(time.monotonic() - start), 60)
+            self._message(f"{title}... {minutes}:{seconds:02d}", body, icon, 0)
 
     def _message(
         self,
