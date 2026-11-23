@@ -1,6 +1,6 @@
 # Dicta.me
 
-Local voice dictation for KDE Plasma (Wayland). Press a global shortcut, speak, press it again, and the transcribed text is copied to the clipboard. Everything runs on your machine, on CPU.
+Local voice dictation for KDE Plasma (Wayland). Press a global shortcut, speak, press it again, and the transcribed text is pasted at the cursor. Everything runs on your machine, on CPU.
 
 ## Usage
 
@@ -17,7 +17,7 @@ Command-line options override the configuration file.
 While the program runs:
 
 1. `Meta+R` starts recording.
-2. `Meta+R` again stops, transcribes, and copies the text to the clipboard. Paste it with Ctrl+V.
+2. `Meta+R` again stops, transcribes, copies the text to the clipboard and pastes it at the cursor with Ctrl+Shift+V.
 
 While it runs, a tray icon shows the state: a microphone when ready, a red dot while recording, and a refresh icon while transcribing. Clicking the icon works like the shortcut.
 
@@ -25,7 +25,7 @@ A single notification follows the process: "Recording..." stays on screen until 
 
 Stopping the program with Ctrl+C removes the shortcut and the icon.
 
-The first run downloads the model. The first time the shortcut is registered, KDE may ask you to confirm it.
+The first run downloads the model. The first time, KDE asks you to confirm the shortcut and to allow Dicta to control the keyboard (needed to paste). The permission is remembered. If you deny it, Dicta only copies to the clipboard.
 
 ## Configuration
 
@@ -35,6 +35,8 @@ The first run downloads the model. The first time the shortcut is registered, KD
 model = "small"
 language = "es"
 trigger = "META+R"
+paste = true                                    # paste at the cursor after copying
+paste_keys = "ctrl+shift+v"                     # keys used to paste
 hotwords = ["Neovim", "Claude Code"]          # words Whisper should favor
 initial_prompt = ""                             # optional context for vocabulary and style
 
@@ -47,6 +49,7 @@ capitalize_sentences = false                    # capital letter after every per
 "neo vim" = "Neovim"
 ```
 
+- `paste = false` keeps only the clipboard. `paste_keys` accepts combinations such as `ctrl+v` (modifiers: `ctrl`, `shift`, `alt`, `super`, then one character).
 - `hotwords` and `initial_prompt` bias the model before transcribing.
 - `[format]` cleans up whitespace always. `final_period` closes an open `¿` with `?` and an open `¡` with `!`.
 - `replacements` run after transcribing, are case-insensitive and match whole words.
@@ -64,7 +67,7 @@ sudo pacman -S uv portaudio wl-clipboard libnotify
 ## How it works
 
 ```
-Meta+R ─▶ KDE GlobalShortcuts portal ─▶ dicta ─▶ record ─▶ faster-whisper ─▶ wl-copy
+Meta+R ─▶ KDE GlobalShortcuts portal ─▶ dicta ─▶ record ─▶ faster-whisper ─▶ wl-copy ─▶ RemoteDesktop portal (Ctrl+Shift+V)
 ```
 
 - `src/dicta/shortcut.py`: registers the shortcut through the portal over D-Bus.
@@ -74,10 +77,11 @@ Meta+R ─▶ KDE GlobalShortcuts portal ─▶ dicta ─▶ record ─▶ faste
 - `src/dicta/audio.py`: in-memory microphone capture (16 kHz mono).
 - `src/dicta/stt.py`: transcription with faster-whisper (CPU, int8) with hotwords, initial prompt and replacements. The model stays loaded.
 - `src/dicta/output.py`: copies the text to the clipboard with `wl-copy` and shows one notification that updates in place.
+- `src/dicta/keyboard.py`: pastes by sending keys through the RemoteDesktop portal. The permission token is stored in `~/.local/state/dicta/`.
+- `src/dicta/portal.py`: helpers shared by the portal clients.
 - `contrib/me.dicta.Dicta.desktop`: the portal identifies the app through this file. `dicta.sh` installs it into `~/.local/share/applications`.
 
 ## Future improvements
 
-- Paste automatically at the cursor. KWin does not support the virtual keyboard protocol used by `wtype`; options are the RemoteDesktop portal, `ydotool` or `dotool`.
 - Stop automatically after a pause in speech.
 - Custom dictionary and voice commands ("new line", "period").

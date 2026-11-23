@@ -29,6 +29,13 @@ hotwords = []
 initial_prompt = ""
 # initial_prompt = "Dictado técnico en español sobre programación."
 
+# Paste the text at the cursor after copying it. KDE asks for permission the
+# first time. Set to false to only copy to the clipboard.
+paste = true
+
+# Keys used to paste. Ctrl+Shift+V works in terminals and most apps.
+paste_keys = "ctrl+shift+v"
+
 # Formatting of the final text. Whitespace is always cleaned up.
 [format]
 capitalize = true             # capital letter at the start
@@ -51,6 +58,8 @@ class Config:
     initial_prompt: str | None = None
     replacements: dict[str, str] = field(default_factory=dict)
     format: FormatOptions = field(default_factory=FormatOptions)
+    paste: bool = True
+    paste_keys: str = "ctrl+shift+v"
 
 
 def config_path() -> Path:
@@ -81,4 +90,6 @@ def load() -> Config:
         initial_prompt=data.get("initial_prompt") or None,
         replacements=dict(data.get("replacements", {})),
         format=FormatOptions(**data.get("format", {})),
+        paste=bool(data.get("paste", True)),
+        paste_keys=data.get("paste_keys", "ctrl+shift+v"),
     )
