@@ -16,7 +16,9 @@ While the program runs:
 1. `Meta+R` starts recording.
 2. `Meta+R` again stops, transcribes, and copies the text to the clipboard. Paste it with Ctrl+V.
 
-Stopping the program with Ctrl+C removes the shortcut.
+While it runs, a tray icon shows the state: a microphone when ready, a red dot while recording, and a refresh icon while transcribing. Clicking the icon works like the shortcut.
+
+Stopping the program with Ctrl+C removes the shortcut and the icon.
 
 The first run downloads the model. The first time the shortcut is registered, KDE may ask you to confirm it.
 
@@ -36,6 +38,7 @@ Meta+R ─▶ KDE GlobalShortcuts portal ─▶ dicta ─▶ record ─▶ faste
 ```
 
 - `src/dicta/shortcut.py`: registers the shortcut through the portal over D-Bus.
+- `src/dicta/tray.py`: tray icon through the StatusNotifierItem protocol.
 - `src/dicta/audio.py`: in-memory microphone capture (16 kHz mono).
 - `src/dicta/stt.py`: transcription with faster-whisper (CPU, int8). The model stays loaded.
 - `src/dicta/output.py`: copies the text to the clipboard with `wl-copy` and sends a notification.

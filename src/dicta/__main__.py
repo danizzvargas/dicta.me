@@ -9,6 +9,7 @@ from .audio import SAMPLE_RATE, Recorder
 from .output import copy_text, notify
 from .shortcut import GlobalShortcut
 from .stt import Transcriber
+from .tray import Tray
 
 MIN_SECONDS = 0.3
 
@@ -22,6 +23,7 @@ class State(Enum):
 class Dicta:
     def __init__(self, transcriber: Transcriber) -> None:
         self.transcriber = transcriber
+        self.tray: Tray | None = None
         self.recorder = Recorder()
         self.state = State.IDLE
 
@@ -29,15 +31,16 @@ class Dicta:
         if self.state is State.IDLE:
             self.recorder.start()
             self.state = State.RECORDING
-            notify("Dicta", "Recording... press the shortcut again to stop")
+            self._show("recording")
         elif self.state is State.RECORDING:
             audio = self.recorder.stop()
             if len(audio) < MIN_SECONDS * SAMPLE_RATE:
                 self.state = State.IDLE
+                self._show("idle")
                 notify("Dicta", "Recording too short")
                 return
             self.state = State.TRANSCRIBING
-            notify("Dicta", "Processing...")
+            self._show("processing")
             try:
                 text = await asyncio.to_thread(self.transcriber.transcribe, audio)
                 if text:
@@ -50,6 +53,11 @@ class Dicta:
                 raise
             finally:
                 self.state = State.IDLE
+                self._show("idle")
+
+    def _show(self, state: str) -> None:
+        if self.tray is not None:
+            self.tray.set_state(state)
 
 
 async def run(args: argparse.Namespace) -> None:
@@ -59,6 +67,9 @@ async def run(args: argparse.Namespace) -> None:
 
     shortcut = GlobalShortcut("dictate", "Toggle dictation", args.trigger)
     trigger = await shortcut.register(dicta.toggle)
+    tray = Tray(dicta.toggle)
+    await tray.start(f"Shortcut: {trigger}")
+    dicta.tray = tray
     print(f"Ready. Shortcut: {trigger}. Press Ctrl+C to quit.", flush=True)
     notify("Dicta", f"Ready. Shortcut: {trigger}")
 
@@ -67,6 +78,7 @@ async def run(args: argparse.Namespace) -> None:
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, stop.set)
     await stop.wait()
+    tray.close()
     shortcut.close()
     print("Bye.")
 
