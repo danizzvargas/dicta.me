@@ -1,0 +1,21 @@
+[project]
+name = "dicta"
+version = "0.1.0"
+description = "Local voice dictation: press a shortcut, speak, and the text is typed at the cursor."
+requires-python = ">=3.11"
+dependencies = [
+    "faster-whisper>=1.0",
+    "sounddevice>=0.4",
+    "numpy>=1.26",
+    "dbus-fast>=2.21",
+]
+
+[project.scripts]
+dicta = "dicta.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dicta"]

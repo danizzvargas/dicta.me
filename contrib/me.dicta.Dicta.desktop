@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Dicta
+Comment=Local voice dictation
+Exec=@EXEC@
+Icon=audio-input-microphone
+NoDisplay=true
