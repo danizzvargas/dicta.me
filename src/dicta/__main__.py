@@ -2,11 +2,14 @@
 
 import argparse
 import asyncio
+import os
 import signal
 import time
 from enum import Enum, auto
 
+from . import config as cfg
 from .audio import SAMPLE_RATE, Recorder
+from .format import FormatOptions, format_text
 from .output import copy_text, notify
 from .shortcut import GlobalShortcut
 from .stt import Transcriber
@@ -22,8 +25,9 @@ class State(Enum):
 
 
 class Dicta:
-    def __init__(self, transcriber: Transcriber) -> None:
+    def __init__(self, transcriber: Transcriber, fmt: FormatOptions) -> None:
         self.transcriber = transcriber
+        self.fmt = fmt
         self.tray: Tray | None = None
         self.recorder = Recorder()
         self.state = State.IDLE
@@ -51,6 +55,7 @@ class Dicta:
             self._start_timer("Transcribing", "Please wait", "view-refresh")
             try:
                 text = await asyncio.to_thread(self.transcriber.transcribe, audio)
+                text = format_text(text, self.fmt)
                 if text:
                     copy_text(text)
                     self._message("Copied to clipboard", text, "edit-copy")
@@ -104,11 +109,19 @@ class Dicta:
 
 
 async def run(args: argparse.Namespace) -> None:
-    print(f"Loading model '{args.model}'...", flush=True)
-    transcriber = await asyncio.to_thread(Transcriber, args.model, args.language)
-    dicta = Dicta(transcriber)
+    conf = args.conf
+    print(f"Loading model '{conf.model}'...", flush=True)
+    transcriber = await asyncio.to_thread(
+        Transcriber,
+        conf.model,
+        conf.language,
+        conf.hotwords,
+        conf.initial_prompt,
+        conf.replacements,
+    )
+    dicta = Dicta(transcriber, conf.format)
 
-    shortcut = GlobalShortcut("dictate", "Toggle dictation", args.trigger)
+    shortcut = GlobalShortcut("dictate", "Toggle dictation", conf.trigger)
     trigger = await shortcut.register(dicta.toggle)
     tray = Tray(dicta.toggle)
     await tray.start(f"Shortcut: {trigger}")
@@ -128,10 +141,24 @@ async def run(args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(prog="dicta", description=__doc__)
-    parser.add_argument("--model", default="small", help="faster-whisper model (default: small)")
-    parser.add_argument("--language", default=None, help="language code, e.g. es (default: auto)")
-    parser.add_argument("--trigger", default="META+R", help="preferred shortcut (default: META+R)")
-    asyncio.run(run(parser.parse_args()))
+    parser.add_argument("-c", "--config", action="store_true", help="edit the config file in Neovim and exit")
+    parser.add_argument("-m", "--model", help="faster-whisper model (overrides config)")
+    parser.add_argument("-l", "--language", help="language code, e.g. es (overrides config)")
+    parser.add_argument("-t", "--trigger", help="preferred shortcut (overrides config)")
+    args = parser.parse_args()
+
+    if args.config:
+        os.execvp("nvim", ["nvim", str(cfg.ensure_config())])
+
+    try:
+        conf = cfg.load()
+    except Exception as exc:
+        raise SystemExit(f"Invalid config file {cfg.config_path()}: {exc}")
+    for name in ("model", "language", "trigger"):
+        if getattr(args, name):
+            setattr(conf, name, getattr(args, name))
+    args.conf = conf
+    asyncio.run(run(args))
 
 
 if __name__ == "__main__":

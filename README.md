@@ -6,10 +6,13 @@ Local voice dictation for KDE Plasma (Wayland). Press a global shortcut, speak, 
 
 ```sh
 ./dicta.sh                      # start in the foreground (Ctrl+C to quit)
-./dicta.sh --language es        # force a language (default: auto-detect)
-./dicta.sh --model base         # faster, less accurate (default: small)
-./dicta.sh --trigger META+D     # preferred shortcut (default: META+R)
+./dicta.sh -c                   # edit the configuration in Neovim (--config)
+./dicta.sh -l es                # force a language (--language), default: auto-detect
+./dicta.sh -m base              # faster, less accurate (--model), default: small
+./dicta.sh -t META+D            # preferred shortcut (--trigger), default: META+R
 ```
+
+Command-line options override the configuration file.
 
 While the program runs:
 
@@ -23,6 +26,31 @@ A single notification follows the process: "Recording..." stays on screen until 
 Stopping the program with Ctrl+C removes the shortcut and the icon.
 
 The first run downloads the model. The first time the shortcut is registered, KDE may ask you to confirm it.
+
+## Configuration
+
+`./dicta.sh -c` creates `~/.config/dicta/config.toml` from a commented template and opens it in Neovim. Restart Dicta after saving.
+
+```toml
+model = "small"
+language = "es"
+trigger = "META+R"
+hotwords = ["Neovim", "Claude Code"]          # words Whisper should favor
+initial_prompt = ""                             # optional context for vocabulary and style
+
+[format]                                        # formatting of the final text
+capitalize = true                               # capital letter at the start
+final_period = true                             # period at the end if missing
+capitalize_sentences = false                    # capital letter after every period
+
+[replacements]                                  # fixes on the final text
+"neo vim" = "Neovim"
+```
+
+- `hotwords` and `initial_prompt` bias the model before transcribing.
+- `[format]` cleans up whitespace always. `final_period` closes an open `¿` with `?` and an open `¡` with `!`.
+- `replacements` run after transcribing, are case-insensitive and match whole words.
+- A bigger `model` (`medium`) improves names and technical terms at the cost of speed.
 
 ## Requirements
 
@@ -41,8 +69,10 @@ Meta+R ─▶ KDE GlobalShortcuts portal ─▶ dicta ─▶ record ─▶ faste
 
 - `src/dicta/shortcut.py`: registers the shortcut through the portal over D-Bus.
 - `src/dicta/tray.py`: tray icon through the StatusNotifierItem protocol.
+- `src/dicta/config.py`: loads `~/.config/dicta/config.toml` and writes its template.
+- `src/dicta/format.py`: capitalization, final punctuation and whitespace rules.
 - `src/dicta/audio.py`: in-memory microphone capture (16 kHz mono).
-- `src/dicta/stt.py`: transcription with faster-whisper (CPU, int8). The model stays loaded.
+- `src/dicta/stt.py`: transcription with faster-whisper (CPU, int8) with hotwords, initial prompt and replacements. The model stays loaded.
 - `src/dicta/output.py`: copies the text to the clipboard with `wl-copy` and shows one notification that updates in place.
 - `contrib/me.dicta.Dicta.desktop`: the portal identifies the app through this file. `dicta.sh` installs it into `~/.local/share/applications`.
 
@@ -50,5 +80,4 @@ Meta+R ─▶ KDE GlobalShortcuts portal ─▶ dicta ─▶ record ─▶ faste
 
 - Paste automatically at the cursor. KWin does not support the virtual keyboard protocol used by `wtype`; options are the RemoteDesktop portal, `ydotool` or `dotool`.
 - Stop automatically after a pause in speech.
-- Configuration file (`~/.config/dicta/config.toml`).
 - Custom dictionary and voice commands ("new line", "period").
